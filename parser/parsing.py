@@ -1,58 +1,40 @@
 import pyparsing as pp
-import json
-import model.DSLTree as DSLTree
-
+import model.dsl_tree as dsl_tree
 
 id = pp.Word(pp.alphas + "_", pp.alphanums + "_")
 p_key = pp.Keyword("param", caseless=True)
-
 string = pp.QuotedString(quoteChar="'", esc_char="\\") | pp.QuotedString(quoteChar='"', esc_char="\\")
-
 equals = pp.Suppress("=")
 whitespace = pp.Suppress(pp.White())
 param_token = pp.Group(p_key + whitespace + id("param") + whitespace + equals + whitespace + string("value"))
-
 colon = pp.Suppress(":")
 comma = pp.Suppress(";")
-
 s_key = pp.Keyword("state", caseless=True)
 o_key = pp.Keyword("out", caseless=True)
 a_key = pp.Keyword("ask", caseless=True)
 arrow = pp.Suppress("->")
-
-
 out_expr = pp.Group(o_key + whitespace + string("out"))
 ask_expr = pp.Group(a_key + whitespace + string("ask") + whitespace + arrow + whitespace + id("save_to"))
 trans_expr = pp.Group(arrow + whitespace + id("trans"))
-
 if_expr = pp.Forward()
-
 exprs = pp.ZeroOrMore(out_expr | ask_expr | trans_expr | if_expr)("exprs")
-
-
-
 i_key = pp.Keyword("if", caseless=True)
 ei_key = pp.Keyword("elif", caseless=True)
 el_key = pp.Keyword("else", caseless=True)
 equal = pp.Literal("==")
 reg = pp.Literal("~=")
-
 condition = pp.Group(id("key") + whitespace + (equal | reg)("judge") + whitespace + string("value"))("condition")
-
 if_token = pp.Group(i_key + whitespace + condition + colon + exprs)("if_")
-elif_token = pp.Group(ei_key + whitespace + condition + colon + exprs)("elif_")
+elif_token = pp.Group(ei_key + whitespace + condition + colon + exprs)
 else_token = pp.Group(el_key + colon + exprs)("else_")
-
-if_expr <<= pp.Group(if_token + pp.ZeroOrMore(elif_token | else_token) + comma)
-
+if_expr <<= pp.Group(if_token + pp.ZeroOrMore(elif_token)("elif_") + pp.Optional(else_token) + comma)
 state_token = pp.Group(s_key + whitespace + id("state") + colon + exprs)
-
 parse = pp.ZeroOrMore(param_token | state_token)("DSLTree")
-
 parse = parse.ignore(pp.pythonStyleComment)
 
-result = parse.parse_file("conf.czz", parseAll=True).as_dict()
 
-result = DSLTree.serialize(result)
-
-print(result)
+def parse_file(file) -> dsl_tree.DSLTree:
+    result = parse.parse_file(file, parseAll=True).as_dict()
+    print(result)
+    result = dsl_tree.serialize(result)
+    return result

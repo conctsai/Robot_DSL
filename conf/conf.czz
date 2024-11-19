@@ -3,7 +3,7 @@ PARAM user_name = "John"
 PARAM user_age = "30"
 
 # 初始状态
-STATE initial:
+STATE INITIAL:
     OUT "Welcome to the chatbot, {user_name}!"
     ASK "What can I help you with today?" -> user_request
     IF user_request == "help":
@@ -15,7 +15,7 @@ STATE initial:
         -> feedback_state
     ELSE:
         OUT "Sorry, I didn't understand your request."
-        -> initial
+        -> INITIAL
     ;
 
 # 状态: assist
