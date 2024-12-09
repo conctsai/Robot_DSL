@@ -13,6 +13,7 @@ comma = pp.Suppress(";") # 分号
 arrow = pp.Suppress("->") # 箭头
 equal = pp.Literal("==") # 等于
 reg = pp.Literal("~=") # 正则匹配
+
 gt = pp.Literal(">") # 大于
 lt = pp.Literal("<") # 小于
 ge = pp.Literal(">=") # 大于等于

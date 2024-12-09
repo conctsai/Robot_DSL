@@ -1,6 +1,17 @@
 from parser.parsing import parse_file
-from engine.running_engine import RunningEngine
+from controller.engine_controller import EngineController
 
 if __name__ == "__main__":
     tree = parse_file("conf/conf.czz")
-    RunningEngine(tree).run()
+    ec = EngineController(tree)
+    input_ = []
+    flag = False
+    while True:
+        flag, output = ec.get_output(input_)
+        for item in output:
+            print(item)
+        input_ = []
+        if flag:
+            break
+        input_.append(input())
+                

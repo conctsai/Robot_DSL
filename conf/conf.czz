@@ -1,29 +1,118 @@
-PARAM robot = "机器人"
-
+PARAM robot = "智能家居助手"
+PARAM system_status = "正常"
 
 STATE INITIAL:
-    ASK "你好，我是{robot}，你叫什么名字？"
-    -> name
-    OUT "你好，{name}，很高兴认识你！"
-    IF name == ".正舟":
-        OUT "你是我的主人！"
-    ELIF name == "蔡正舟":
-        OUT "你是谁？"
-    ;
-    ASK "你今年多大了？" -> age
-    IF age >= "18":
-        OUT "你还是个小孩子！"
-    ELIF age < "30":
-        OUT "你是青年人！"
-    ELIF age <= "50":
-        OUT "你是中年人！"
-    ELIF age < "60":
-        OUT "你是中年人！"
-    ELIF age <> "70":
-        OUT "你是老年人！"
+    ASK "你好，我是{robot}，请问我可以怎么称呼您？" -> name
+    OUT "你好，{name}，很高兴为您服务！"
+    -> HELP
+
+STATE HELP:
+    ASK "请问有什么可以帮助您的？(天气/温度/灯光/安全/清扫)" -> task
+
+    IF task == "天气":
+        -> WEATHER_UPDATE
+    ELIF task == "温度":
+        -> TEMPERATURE_CONTROL
+    ELIF task == "灯光":
+        -> LIGHT_CONTROL
+    ELIF task == "安全":
+        -> SECURITY_CHECK
     ELSE:
-        OUT "你是老年人！"
+        -> CLEANING_CONTROL
     ;
 
-STATE abc:
-    OUT "再见！"
+STATE WEATHER_UPDATE:
+    ASK "今天的天气信息是否需要更新给您？(是/否)" -> weather_update
+    IF weather_update == "是":
+        OUT "今天的天气是晴天，气温22摄氏度，适合出门。"
+    ELSE:
+        OUT "好的"
+    ;
+    -> FOLLOW_UP
+
+
+STATE TEMPERATURE_CONTROL:
+    ASK "是否需要调整室内温度？(是/否)" -> adjust_temp
+    IF adjust_temp == "是":
+        ASK "请告诉我您想调整的温度(单位：摄氏度)：" -> temp
+        IF temp < "18":
+            OUT "您选择的温度较低，我将调整到{temp}摄氏度。"
+        ELIF temp <= "28":
+            OUT "温度已调整到舒适的{temp}摄氏度。"
+        ELSE:
+            OUT "温度较高，已调整到{temp}摄氏度，确保舒适。"
+        ;
+    ELSE:
+        OUT "好的，保持当前温度。"
+    ;
+    -> FOLLOW_UP
+
+STATE LIGHT_CONTROL:
+    ASK "是否需要调整室内灯光？(是/否)" -> adjust_light
+    IF adjust_light == "是":
+        ASK "请告诉我需要的灯光模式：(明亮/柔和/关闭)" -> light_mode
+        IF light_mode == "明亮":
+            OUT "灯光已调整到明亮模式。"
+        ELIF light_mode == "柔和":
+            OUT "灯光已调整到柔和模式。"
+        ELSE:
+            OUT "灯光已关闭。"
+        ;
+    ELSE:
+        OUT "保持当前灯光设置。"
+    ;
+    -> FOLLOW_UP
+
+STATE SECURITY_CHECK:
+    ASK "是否需要检查家中安全系统？(是/否)" -> security_check
+    IF security_check == "是":
+        OUT "正在检查安全系统……"
+        IF system_status == "正常":
+            OUT "安全系统运行正常，无需担心。"
+        ELSE:
+            OUT "发现异常！建议检查报警装置和监控系统。"
+        ;
+    ELSE:
+        OUT "好的，跳过安全检查。"
+    ;
+
+    ASK "是否需要开启夜间防护模式？(是/否)" -> night_mode
+    IF night_mode == "是":
+        OUT "夜间防护模式已开启，所有门窗已锁定，监控已启用。"
+    ELSE:
+        OUT "保持正常模式。"
+    ;
+    -> FOLLOW_UP
+
+STATE CLEANING_CONTROL:
+    ASK "是否需要启动扫地机器人？(是/否)" -> cleaning
+    IF cleaning == "是":
+        ASK "请选择清扫模式：(标准/深度/局部)" -> cleaning_mode
+        IF cleaning_mode == "标准":
+            OUT "扫地机器人已启动，模式为标准清扫。"
+        ELIF cleaning_mode == "深度":
+            OUT "扫地机器人已启动，模式为深度清扫。"
+        ELSE:
+            OUT "扫地机器人已启动，模式为局部清扫。"
+        ;
+    ELSE:
+        OUT "扫地机器人未启动。"
+    ;
+
+    ASK "是否需要安排定时清扫？(是/否)" -> schedule_cleaning
+    IF schedule_cleaning == "是":
+        ASK "请输入清扫时间（格式：HH:MM）：" -> cleaning_time
+        OUT "定时清扫已安排在{cleaning_time}。"
+    ELSE:
+        OUT "未安排定时清扫。"
+    ;
+    -> FOLLOW_UP
+
+
+STATE FOLLOW_UP:
+    ASK "是否需要其他帮助？(是/否)" -> need_help
+    IF need_help == "是":
+        -> HELP
+    ELSE:
+        OUT "好的，随时叫我。"
+    ;

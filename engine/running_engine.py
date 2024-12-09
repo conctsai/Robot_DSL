@@ -3,12 +3,13 @@ from typing import Union, Tuple
 from engine.variable_manager import VariableManager
 from engine.message_handler import MessageHandler
 from engine.string_operation import StringOperation
+from error.running_engine_error import NoInputError
 
 class RunningEngine():
-    def __init__(self, tree: DSLTree):
+    def __init__(self, tree: DSLTree, mh: MessageHandler):
         self.tree = tree
         self.vm = VariableManager()
-        self.mh = MessageHandler()
+        self.mh = mh
         
         # 处理param
         for item in self.tree.param_iter():
@@ -17,17 +18,21 @@ class RunningEngine():
         self.state = 'INITIAL'
         self.op = 0
         
-    def run(self):
-        while True:
-            trans_flag = False
-            state = self.tree.get_state(self.state)
-            for item in state.expr_iter():
-                if not self.exec_expr(item):
-                    trans_flag = True
+    def run(self) -> bool:
+        try:
+            while True:
+                trans_flag = False
+                state = self.tree.get_state(self.state)
+                for item in state.expr_iter():
+                    if not self.exec_expr(item):
+                        trans_flag = True
+                        break
+                if not trans_flag:
+                    # 如果没有状态转换，结束执行
                     break
-            if not trans_flag:
-                # 如果没有状态转换，结束执行
-                break
+            return True
+        except NoInputError as e:
+            return False
             
     
     def exec_expr(self, expr: Union[OUT, ASK, TRANS, JUDGE]) -> bool: # 返回是否继续执行
@@ -44,12 +49,16 @@ class RunningEngine():
     
     def exec_out(self, item: OUT):
         out = self.vm.format_placeholders(item.get_out())
-        self.mh.send(out)
+        self.mh.server_send(out)
         
     def exec_ask(self, item: ASK):
         ask = self.vm.format_placeholders(item.get_ask())
-        self.mh.send(ask)
-        self.vm.set(item.get_save_to(), self.mh.recv())
+        self.mh.server_send(ask)
+        revmsg = self.mh.server_recv()
+        if revmsg is None:
+            raise NoInputError("No input")
+        else:
+            self.vm.set(item.get_save_to(), revmsg)
         
     def exec_trans(self, item: TRANS):
         self.state = self.tree.get_state(item.get_trans()).get_state_name()
