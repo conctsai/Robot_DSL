@@ -1,5 +1,5 @@
 import pyparsing as pp
-from parser.parse_basic_unit import whitespace, string, id, reg, equal, colon
+from parser.parse_basic_unit import whitespace, string, id, reg, equal, colon, gt, lt, ge, le, ne
 
 exprs = pp.Forward()
 
@@ -10,7 +10,12 @@ el_key = pp.Keyword("else", caseless=True)
 condition = pp.Group(id("key") + 
                      whitespace + 
                      (equal 
-                      | reg)("judge") 
+                      | reg
+                      | ge
+                      | le
+                      | ne
+                      | gt
+                      | lt)("judge")
                      + whitespace 
                      + string("value"))("condition")
 

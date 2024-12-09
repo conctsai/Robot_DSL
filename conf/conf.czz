@@ -1,64 +1,29 @@
-# 参数定义
-PARAM user_name = "John"
-PARAM user_age = "30"
+PARAM robot = "机器人"
 
-# 初始状态
+
 STATE INITIAL:
-    OUT "Welcome to the chatbot, {user_name}!"
-    ASK "What can I help you with today?" -> user_request
-    IF user_request == "help":
-        OUT "Let me assist you with that."
-        -> assist
-    ELIF user_request == "feedback":
-        OUT "Please provide your feedback below."
-        ASK "Your feedback?" -> feedback
-        -> feedback_state
+    ASK "你好，我是{robot}，你叫什么名字？"
+    -> name
+    OUT "你好，{name}，很高兴认识你！"
+    IF name == ".正舟":
+        OUT "你是我的主人！"
+    ELIF name == "蔡正舟":
+        OUT "你是谁？"
+    ;
+    ASK "你今年多大了？" -> age
+    IF age >= "18":
+        OUT "你还是个小孩子！"
+    ELIF age < "30":
+        OUT "你是青年人！"
+    ELIF age <= "50":
+        OUT "你是中年人！"
+    ELIF age < "60":
+        OUT "你是中年人！"
+    ELIF age <> "70":
+        OUT "你是老年人！"
     ELSE:
-        OUT "Sorry, I didn't understand your request."
-        -> INITIAL
+        OUT "你是老年人！"
     ;
 
-# 状态: assist
-STATE assist:
-    OUT "Here are some common topics I can help with:"
-    OUT "1. Account issues"
-    OUT "2. Technical support"
-    OUT "3. Billing inquiries"
-    ASK "Please select a topic by number:" -> topic
-    IF topic == "1":
-        OUT "Let me connect you with an account specialist."
-        -> account_support
-    ELIF topic == "2":
-        OUT "Connecting you to technical support."
-        -> tech_support
-    ELIF topic == "3":
-        OUT "I will transfer you to billing support."
-        -> billing_support
-    ELSE:
-        OUT "Invalid option. Please try again."
-        -> assist
-    ;
-
-# 状态: feedback_state
-STATE feedback_state:
-    OUT "Thank you for your feedback, {user_name}."
-    -> end
-
-# 状态: account_support
-STATE account_support:
-    OUT "You are now connected with an account specialist."
-    -> end
-
-# 状态: tech_support
-STATE tech_support:
-    OUT "You are now connected with a technical support specialist."
-    -> end
-
-# 状态: billing_support
-STATE billing_support:
-    OUT "You are now connected with a billing support specialist."
-    -> end
-
-# 结束状态
-STATE end:
-    OUT "Thank you for using the chatbot. Goodbye!"
+STATE abc:
+    OUT "再见！"

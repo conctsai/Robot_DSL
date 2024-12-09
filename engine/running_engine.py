@@ -1,5 +1,5 @@
 from model.dsl_tree import OUT, ASK, TRANS, JUDGE, IF_, ELIF_, ELSE_, CONDITION, DSLTree
-from typing import Union
+from typing import Union, Tuple
 from engine.variable_manager import VariableManager
 from engine.message_handler import MessageHandler
 from engine.string_operation import StringOperation
@@ -56,22 +56,30 @@ class RunningEngine():
         
     def exec_judge(self, item: JUDGE) -> bool: # 返回是否继续执行
         if_ = item.get_if()
-        if not self.exec_if_or_elif(if_):
+        exec_flag, judge_flag = self.exec_if_or_elif(if_)
+        if not exec_flag:
             return False
+        if not judge_flag:
+            return True
         for elif_ in item.elif_iter():
-            if not self.exec_if_or_elif(elif_):
+            exec_flag, judge_flag = self.exec_if_or_elif(elif_)
+            if not exec_flag:
                 return False
+            if not judge_flag:
+                return True
         if item.has_else():
             if not self.exec_else(item.get_else()):
                 return False
+        return True
         
-    def exec_if_or_elif(self, item: Union[IF_, ELIF_]) -> bool: # 返回是否继续执行
+    def exec_if_or_elif(self, item: Union[IF_, ELIF_]) -> Tuple[bool, bool]: # 第一个返回是否继续执行，第二个返回是否继续判断
         cond = item.get_condition()
         if self.exec_condition(cond):
             for expr in item.expr_iter():
                 if not self.exec_expr(expr):
-                    return False
-        return True
+                    return False, False # 有状态转换
+            return True, False # 没有状态转换，但是不继续判断
+        return True, True # 没有状态转换，继续判断
 
     def exec_else(self, item: ELSE_) -> bool: # 返回是否继续执行
         for expr in item.expr_iter():
@@ -84,4 +92,14 @@ class RunningEngine():
             return StringOperation.euqal_string(self.vm.get(cond.get_key()), cond.get_value())
         elif cond.get_judge() == "~=":
             return StringOperation.regex_string(self.vm.get(cond.get_key()), cond.get_value())
+        elif cond.get_judge() == ">":
+            return StringOperation.greater_number(self.vm.get(cond.get_key()), cond.get_value())
+        elif cond.get_judge() == "<":
+            return StringOperation.less_number(self.vm.get(cond.get_key()), cond.get_value())
+        elif cond.get_judge() == ">=":
+            return StringOperation.greater_equal_number(self.vm.get(cond.get_key()), cond.get_value())
+        elif cond.get_judge() == "<=":
+            return StringOperation.less_equal_number(self.vm.get(cond.get_key()), cond.get_value())
+        elif cond.get_judge() == "<>":
+            return StringOperation.not_equal_string(self.vm.get(cond.get_key()), cond.get_value())
         return False
