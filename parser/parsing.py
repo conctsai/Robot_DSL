@@ -8,6 +8,6 @@ parse = parse.ignore(pp.pythonStyleComment)
 
 def parse_file(file) -> dsl_tree.DSLTree:
     result = parse.parse_file(file, parseAll=True).as_dict()
-    print(result)
+    # print(result)
     result = dsl_tree.serialize(result)
     return result
