@@ -3,100 +3,141 @@ import pytest as ptt
 import pyparsing as pp
 
 class TestBasicUnit:
-    def test_id(self):
-        s = 'abc_123'
-        result = id.parseString(s, parse_all=True).as_list()
-        assert result == ['abc_123']
-        
-        s = '_abc_123'
-        result = id.parseString(s, parse_all=True).as_list()
-        assert result == ['_abc_123']
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '123abc'
-            id.parseString(s, parse_all=True)
+    @ptt.fixture(params=[
+        ('abc_123', ['abc_123']),
+        ('_abc_123', ['_abc_123']),
+        ('123abc', pp.exceptions.ParseException)
+    ])
+    def stub_id(self, request):
+        return request.param
+    
+    def test_id(self, stub_id):
+        s, expected = stub_id
+        if isinstance(expected, list):
+            result = id.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                id.parseString(s, parse_all=True)
+                
+    @ptt.fixture(params=[
+        ('=', []),
+        ('==', pp.exceptions.ParseException)
+    ])
+    def stub_equals(self, request):
+        return request.param
             
-    def test_equals(self):
-        s = '='
-        result = equals.parseString(s, parse_all=True).as_list()
-        assert result == []
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '=='
-            equals.parseString(s, parse_all=True)
+    def test_equals(self, stub_equals):
+        s, expected = stub_equals
+        if isinstance(expected, list):
+            result = equals.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                equals.parseString(s, parse_all=True)
+                
+                
+    @ptt.fixture(params=[
+        (':', []),
+        ('::', pp.exceptions.ParseException)
+    ])
+    def stub_colon(self, request):
+        return request.param
             
-    def test_colon(self):
-        s = ':'
-        result = colon.parseString(s, parse_all=True).as_list()
-        assert result == []
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '::'
-            colon.parseString(s, parse_all=True)
+    def test_colon(self, stub_colon):
+        s, expected = stub_colon
+        if isinstance(expected, list):
+            result = colon.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                colon.parseString(s, parse_all=True)
             
-    def test_comma(self):
-        s = ';'
-        result = comma.parseString(s, parse_all=True).as_list()
-        assert result == []
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = ';;'
-            comma.parseString(s, parse_all=True)
             
-    def test_arrow(self):
-        s = '->'
-        result = arrow.parseString(s, parse_all=True).as_list()
-        assert result == []
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '-->'
-            arrow.parseString(s, parse_all=True)
             
-    def test_equal(self):
-        s = '=='
-        result = equal.parseString(s, parse_all=True).as_list()
-        assert result == ['==']
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '='
-            equal.parseString(s, parse_all=True)
+    @ptt.fixture(params=[
+        (';', []),
+        (';;', pp.exceptions.ParseException)
+    ])
+    def stub_comma(self, request):
+        return request.param
+    def test_comma(self, stub_comma):
+        s, expected = stub_comma
+        if isinstance(expected, list):
+            result = comma.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                comma.parseString(s, parse_all=True)
+                
+                
+    @ptt.fixture(params=[
+        ('->', []),
+        ('-->', pp.exceptions.ParseException)
+    ])
+    def stub_arrow(self, request):
+        return request.param
             
-    def test_reg(self):
-        s = '~='
-        result = reg.parseString(s, parse_all=True).as_list()
-        assert result == ['~=']
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '=='
-            reg.parseString(s, parse_all=True)
+    def test_arrow(self, stub_arrow):
+        s, expected = stub_arrow
+        if isinstance(expected, list):
+            result = arrow.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                arrow.parseString(s, parse_all=True)
+                
+                
+    @ptt.fixture(params=[
+        ('==', ['==']),
+        ('=', pp.exceptions.ParseException)
+    ])
+    def stub_equal(self, request):
+        return request.param
             
-    def test_string_with_single_quotation(self):
-        s = "'abc'"
-        result = string.parseString(s, parse_all=True).as_list()
-        assert result == ["abc"]
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = "'abc"
-            string.parseString(s, parse_all=True)
+    def test_equal(self, stub_equal):
+        s, expected = stub_equal
+        if isinstance(expected, list):
+            result = equal.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                equal.parseString(s, parse_all=True)
+                
+                
+    @ptt.fixture(params=[
+        ('~=', ['~=']),
+        ('~', pp.exceptions.ParseException)
+    ])
+    def stub_reg(self, request):
+        return request.param
+    def test_reg(self, stub_reg):
+        s, expected = stub_reg
+        if isinstance(expected, list):
+            result = reg.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                reg.parseString(s, parse_all=True)
+                
+                
+    @ptt.fixture(params=[
+        ("'abc'", ["abc"]),
+        ('"abc"', ["abc"]),
+        (r"'a\'bc'", ["a'bc"]),
+        (r'"a\"bc"', ["a\"bc"]),
+        ("'abc", pp.exceptions.ParseException),
+        ('"abc', pp.exceptions.ParseException),
+        (r"'a\'bc", pp.exceptions.ParseException),
+    ])
+    def stub_string(self, request):
+        return request.param
             
-    def test_string_with_double_quotation(self):
-        s = '"abc"'
-        result = string.parseString(s, parse_all=True).as_list()
-        assert result == ["abc"]
-
-        with ptt.raises(pp.exceptions.ParseException):
-            s = '"abc'
-            string.parseString(s, parse_all=True)
-            
-    def test_string_escape(self):
-        s = r"'a\'bc'"
-        result = string.parseString(s, parse_all=True).as_list()
-        assert result == ["a'bc"]
-        
-        s = r'"a\"bc"'
-        result = string.parseString(s, parse_all=True).as_list()
-        assert result == ["a\"bc"]
-        
-        with ptt.raises(pp.exceptions.ParseException):
-            s = r"'a\'bc"
-            string.parseString(s, parse_all=True)
+    def test_string(self, stub_string):
+        s, expected = stub_string
+        if isinstance(expected, list):
+            result = string.parseString(s, parse_all=True).as_list()
+            assert result == expected
+        else:
+            with ptt.raises(expected):
+                string.parseString(s, parse_all=True)

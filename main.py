@@ -1,17 +1,10 @@
-from parser.parsing import parse_file
-from controller.engine_controller import EngineController
+from parser.parse_state import state_token
 
-if __name__ == "__main__":
-    tree = parse_file("conf/智能家居机器人.czz")
-    ec = EngineController(tree)
-    input_ = []
-    flag = False
-    while True:
-        flag, output = ec.get_output(input_)
-        for item in output:
-            print(item)
-        input_ = []
-        if flag:
-            break
-        input_.append(input())
-                
+print(state_token.parse_string(
+            '''
+            STATE INITIAL:
+               ASK "你好，我是{robot}，请问我可以怎么称呼您？" -> name
+               OUT "你好，{name}，很高兴为您服务！"
+               -> HELP
+            '''
+        , parse_all=True))
