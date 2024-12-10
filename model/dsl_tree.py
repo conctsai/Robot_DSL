@@ -2,19 +2,26 @@ from pydantic import BaseModel, model_validator, ConfigDict
 from typing import List, Union, Optional
 from error.dsl_runtime_error import NoStateDefinedError, NoInitialStateError, NoStateMatchedError
 
+
+# 基础模型，配置了model_config
 class ConfigedBaseModel(BaseModel):
+    # 防止DSL文件中出现额外的字段
     model_config = ConfigDict(extra='forbid')
 
+
+# PARAM语句模型
 class PARAM(ConfigedBaseModel):
     param: str
     value: str
     
+# OUT语句模型
 class OUT(ConfigedBaseModel):
     out: str
     
     def get_out(self):
         return self.out
     
+# ASK语句模型
 class ASK(ConfigedBaseModel):
     ask: str
     save_to: str
@@ -25,12 +32,14 @@ class ASK(ConfigedBaseModel):
     def get_save_to(self):
         return self.save_to
     
+# 转移语句模型
 class TRANS(ConfigedBaseModel):
     trans: str
     
     def get_trans(self):
         return self.trans
     
+# JUDGE语句模型
 class JUDGE(ConfigedBaseModel):
     if_: 'IF_'
     elif_: List['ELIF_']
@@ -48,10 +57,12 @@ class JUDGE(ConfigedBaseModel):
     def has_else(self) -> bool:
         return self.else_ is not None
     
-    def elif_iter(self):
+    def elif_iter(self): # elif迭代器
         for item in self.elif_:
             yield item
     
+    
+# 条件模型
 class CONDITION(ConfigedBaseModel):
     key: str
     judge: str
@@ -66,6 +77,7 @@ class CONDITION(ConfigedBaseModel):
     def get_value(self):
         return self.value
     
+# 判断语句模型
 class judge_statement(ConfigedBaseModel):
     condition: CONDITION
     exprs: List[Union[OUT, ASK, TRANS, JUDGE]]
@@ -73,34 +85,39 @@ class judge_statement(ConfigedBaseModel):
     def get_condition(self):
         return self.condition
     
-    def expr_iter(self):
+    def expr_iter(self): # expr迭代器
         for item in self.exprs:
             yield item
     
+# IF语句模型
 class IF_(judge_statement):
     pass
     
+# ELIF语句模型
 class ELIF_(judge_statement):
     pass
 
+# ELSE语句模型
 class ELSE_(ConfigedBaseModel):
     exprs: List[Union[OUT, ASK, TRANS, JUDGE]]
     
-    def expr_iter(self):
+    def expr_iter(self): # expr迭代器
         for item in self.exprs:
             yield item
     
+# STATE语句模型
 class STATE(ConfigedBaseModel):
     state: str
     exprs: List[Union[OUT, ASK, TRANS, JUDGE]]
     
-    def expr_iter(self):
+    def expr_iter(self): # expr迭代器
         for item in self.exprs:
             yield item
     
     def get_state_name(self) -> str:
         return self.state
     
+# DSLTree模型
 class DSLTree(ConfigedBaseModel):
     DSLTree: List[Union[PARAM, STATE]]
     
@@ -127,6 +144,8 @@ class DSLTree(ConfigedBaseModel):
                 return state
         raise NoStateMatchedError("state {} not matched".format(state_name))
 
+
+    # 进行模型验证，确保DSLTree中至少有一个STATE，且至少有一个STATE的名字为initial
     @model_validator(mode='after')
     def check_state(self):
         if not self.has_state():

@@ -6,6 +6,9 @@ from error.controller_runtime_error import ConfNotFoundError
 from error.parse_error import ParseError
 
 class ConfController:
+    '''
+    配置文件控制器，用于管理配置文件
+    '''
     def __init__(self, conf_dir='conf', end='czz'):
         # 扫描conf目录下的所有配置文件
         self.end = end
@@ -17,6 +20,11 @@ class ConfController:
                 self.conf_map[conf_file[:-len(self.end)-1]] = None
                 
     def get_dsl_tree(self, conf_name: str) -> DSLTree:
+        '''
+        根据配置文件名获取DSL树
+        :param conf_name: 配置文件名
+        :return: DSL树
+        '''
         if conf_name not in self.conf_map:
             raise ConfNotFoundError(f"Configuration file {conf_name} not found")
         try:
@@ -27,9 +35,8 @@ class ConfController:
         return self.conf_map[conf_name]
 
     def get_all_conf_name(self) -> List[str]:
+        '''
+        获取所有配置文件名
+        :return: 所有配置文件名
+        '''
         return list(self.conf_map.keys())
-            
-
-if __name__ == '__main__':
-    cc = ConfController()
-    print(cc.get_all_conf_name())

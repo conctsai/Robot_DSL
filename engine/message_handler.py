@@ -3,6 +3,9 @@ from error.running_engine_error import HistoryOutputNotMatchedError
 
 # 发送消息的类
 class MessageHandler():
+    '''
+    用于处理消息的类
+    '''
     def __init__(self):
         self.history_input = []
         self.history_input_index = 0
@@ -10,9 +13,18 @@ class MessageHandler():
         self.output = []
     
     def server_send(self, message):
+        '''
+        服务端发送消息
+        :param message: 消息
+        '''
         self.output.append(message)
         
     def server_recv(self) -> Union[str, None]:
+        '''
+        服务端接收消息
+        :param message: 消息
+        :return: 消息
+        '''
         if self.history_input_index >= len(self.history_input):
             return None
         else:
@@ -20,14 +32,25 @@ class MessageHandler():
             return self.history_input[self.history_input_index - 1]
         
     def reset(self):
+        '''
+        重置状态
+        '''
         self.history_input_index = 0
         self.history_output = self.output
         self.output = []
         
     def client_send(self, message):
+        '''
+        客户端发送消息
+        :param message: 消息
+        '''
         self.history_input.append(message)
         
     def client_recv(self) -> List[str]:
+        '''
+        客户端接收消息
+        :return: 消息
+        '''
         # 先匹配history_output和output前面的部分
         for index, _ in enumerate(self.history_output):
             try:
