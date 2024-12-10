@@ -2,6 +2,7 @@ from controller.engine_controller import EngineController
 from controller.conf_controller import ConfController
 from typing import List, Mapping
 from error.controller_runtime_error import ConfNotFoundError, SessionNotFoundError
+from error.parse_error import ParseError
 
 class SessionController:
     def __init__(self):
@@ -14,7 +15,7 @@ class SessionController:
         self.session_count += 1
         try:
             self.session_engine_map[session_id] = EngineController(self.conf_controller.get_dsl_tree(conf_name))
-        except ConfNotFoundError as e:
+        except Exception as e:
             raise e
         return session_id
     

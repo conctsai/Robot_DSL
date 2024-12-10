@@ -11,3 +11,4 @@ class HistoryOutputNotMatchedError(RunningEngineError):
 class NoInputError(RunningEngineError):
     def __init__(self, message):
         super().__init__(message, "NoInputError")
+    

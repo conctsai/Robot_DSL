@@ -2,7 +2,7 @@ from parser.parsing import parse_file
 from controller.engine_controller import EngineController
 
 if __name__ == "__main__":
-    tree = parse_file("conf/conf.czz")
+    tree = parse_file("conf/智能家居机器人.czz")
     ec = EngineController(tree)
     input_ = []
     flag = False
