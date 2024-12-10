@@ -19,6 +19,8 @@ class VariableManager:
             return string.format(**self.variables)
         except KeyError as e:
             raise VariableNotDefinedError("Variable {} not defined".format(str(e)))
+        except Exception as e:
+            raise e
     
     def __str__(self):
         return str(self.variables)

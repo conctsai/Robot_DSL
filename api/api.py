@@ -40,6 +40,13 @@ def create_session(conf_name: str):
             },
             status_code=500
         )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "message": str(e),
+            },
+            status_code=500
+        )
 
 @api_router.post("/get_output")
 def get_output(session_id: int, input: List[str]):
@@ -56,6 +63,13 @@ def get_output(session_id: int, input: List[str]):
         return JSONResponse(
             content={
                 "message": e.message,
+            },
+            status_code=500
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={
+                "message": str("Unknown error:") + str(e),
             },
             status_code=500
         )
