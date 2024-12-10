@@ -74,7 +74,7 @@ STATE SECURITY_CHECK:
         ;
     ELSE:
         OUT "好的，跳过安全检查。"
-    
+    ;
 
     ASK "是否需要开启夜间防护模式？(是/否)" -> night_mode
     IF night_mode == "是":

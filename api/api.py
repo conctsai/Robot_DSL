@@ -5,6 +5,7 @@ from controller.session_controller import SessionController
 from typing import List
 import uvicorn
 from error.controller_runtime_error import ConfNotFoundError, SessionNotFoundError
+from error.dsl_runtime_error import DSLRuntimeError
 from error.parse_error import ParseError
 
 app = FastAPI()
@@ -42,6 +43,13 @@ def create_session(conf_name: str):
             },
             status_code=500
         )
+    except DSLRuntimeError as e:
+        return JSONResponse(
+            content={
+                "message": e.message,
+            },
+            status_code=500
+        )
 
 @api_router.post("/get_output")
 def get_output(session_id: int, input: List[str]):
@@ -53,6 +61,13 @@ def get_output(session_id: int, input: List[str]):
                 "message": e.message,
             },
             status_code=404
+        )
+    except DSLRuntimeError as e:
+        return JSONResponse(
+            content={
+                "message": e.message,
+            },
+            status_code=500
         )
     if finish:
         sc.close_session(session_id)

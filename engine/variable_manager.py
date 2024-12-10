@@ -1,13 +1,14 @@
 from error.dsl_runtime_error import VariableNotDefinedError
+from typing import Mapping
 
 class VariableManager:
     def __init__(self):
-        self.variables = {}
+        self.variables: Mapping[str, str] = {}
         
-    def set(self, key, value):
+    def set(self, key: str, value: str):
         self.variables[key] = value
         
-    def get(self, key):
+    def get(self, key: str) -> str:
         if key in self.variables:
             return self.variables[key]
         else:

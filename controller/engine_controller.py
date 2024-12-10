@@ -10,8 +10,11 @@ class EngineController():
         self.tree = tree
     
     def get_output(self, input: List[str]) -> Tuple[bool, List[str]]:
-        self.mh.reset()
-        for item in input:
-            self.mh.client_send(item)
-        flag = RunningEngine(self.tree, self.mh).run()
-        return flag, self.mh.client_recv()
+        try:
+            self.mh.reset()
+            for item in input:
+                self.mh.client_send(item)
+            flag = RunningEngine(self.tree, self.mh).run()
+            return flag, self.mh.client_recv()
+        except Exception as e:
+            raise e

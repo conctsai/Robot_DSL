@@ -11,20 +11,31 @@ class StringOperation:
     
     @staticmethod
     def greater_number(str1, str2):
+        # 先判断是否为数字
+        if not str1.isdigit() or not str2.isdigit():
+            return str1 > str2
         return float(str1) > float(str2)
     
     @staticmethod
     def less_number(str1, str2):
+        if not str1.isdigit() or not str2.isdigit():
+            return str1 < str2
         return float(str1) < float(str2)
     
     @staticmethod
     def greater_equal_number(str1, str2):
+        if not str1.isdigit() or not str2.isdigit():
+            return str1 >= str2
         return float(str1) >= float(str2)
     
     @staticmethod
     def less_equal_number(str1, str2):
+        if not str1.isdigit() or not str2.isdigit():
+            return str1 <= str2
         return float(str1) <= float(str2)
     
     @staticmethod
     def not_equal_string(str1, str2):
-        return str1 != str2
+        if not str1.isdigit() or not str2.isdigit():
+            return str1 != str2
+        return float(str1) != float(str2)

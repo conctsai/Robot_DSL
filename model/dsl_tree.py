@@ -1,10 +1,9 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, ConfigDict
 from typing import List, Union, Optional
 from error.dsl_runtime_error import NoStateDefinedError, NoInitialStateError, NoStateMatchedError
 
 class ConfigedBaseModel(BaseModel):
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class PARAM(ConfigedBaseModel):
     param: str

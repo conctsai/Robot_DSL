@@ -30,8 +30,10 @@ class MessageHandler():
     def client_recv(self) -> List[str]:
         # 先匹配history_output和output前面的部分
         for index, _ in enumerate(self.history_output):
-            if self.history_output[index] != self.output[index]:
-                raise HistoryOutputNotMatchedError("Output not matched")
+            try:
+                assert self.history_output[index] == self.output[index]
+            except Exception:
+                raise HistoryOutputNotMatchedError("History output not matched")
         return self.output[len(self.history_output):]
     
 # 具体流程：服务器端server_send发送消息后，到server_recv接收消息，此时会返回None

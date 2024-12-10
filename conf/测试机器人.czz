@@ -1,0 +1,12 @@
+PARAM robot = "测试机器人"
+
+STATE INITIAL:
+    OUT "你好，我是{robot}"
+    ASK "你今年几岁了" -> age
+    IF age < "18":
+        OUT "你还是个小孩子"
+    ELIF age < "40":
+        OUT "你已经是个青年人了"
+    ELSE:
+        OUT "你已经是个老人了"
+    ;

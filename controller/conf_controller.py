@@ -19,11 +19,11 @@ class ConfController:
     def get_dsl_tree(self, conf_name: str) -> DSLTree:
         if conf_name not in self.conf_map:
             raise ConfNotFoundError(f"Configuration file {conf_name} not found")
-        if self.conf_map[conf_name] is None:
-            try:
-                self.conf_map[conf_name] = parse_file(os.path.join(self.conf_dir, conf_name + '.' + self.end))
-            except ParseError as e:
-                raise ParseError(f"Configuration file {conf_name} parse error: {e.message}")
+        try:
+            self.conf_map[conf_name] = parse_file(os.path.join(self.conf_dir, conf_name + '.' + self.end))
+        except ParseError as e:
+            self.conf_map[conf_name] = None
+            raise ParseError(f"Configuration file {conf_name} parse error: {e.message}")
         return self.conf_map[conf_name]
 
     def get_all_conf_name(self) -> List[str]:
