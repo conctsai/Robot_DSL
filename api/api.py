@@ -1,24 +1,14 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from controller.session_controller import SessionController
 from typing import List
-import uvicorn
 from error.controller_runtime_error import ConfNotFoundError, SessionNotFoundError
 from error.dsl_runtime_error import DSLRuntimeError
 from error.parse_error import ParseError
 
-app = FastAPI()
 sc = SessionController()
 api_router = APIRouter()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @api_router.post("/create_session")
 def create_session(conf_name: str):
@@ -87,8 +77,3 @@ def get_all_conf_name():
         },
         status_code=200
     )
-
-app.include_router(api_router, prefix='/api')
-
-if __name__ == '__main__':
-    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -7,7 +7,7 @@ from error.parse_error import ParseError
 class SessionController:
     def __init__(self):
         self.session_engine_map: Mapping[int, EngineController] = {}
-        self.session_count = 0
+        self.session_count = 1
         self.conf_controller = ConfController()
         
     def create_session(self, conf_name: str):
