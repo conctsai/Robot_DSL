@@ -271,3 +271,220 @@ STATE INITIAL:
 如果您编写的DSL有语法错误，会在页面上显示错误信息，其他错误（如`dsl_runtime_error`），也会在页面上显示错误信息，方便您调试，这些错误和配置文件是动态的，也就是说，您可以在不重启服务的情况下修改配置文件和DSL文件，然后刷新页面即可看到最新的效果
 
 ![image-20241211014244646](README.assets/image-20241211014244646.png)
+
+
+
+# 代码风格
+
+`PEP8` 是 `Python` 官方推荐的代码风格指南，代码风格完全遵循`PEP8`规范，具体如下
+
+## 注释
++ 单行注释：使用`#`，注释符后空一格
+  + 对于一些重要变量，会在其右方加上单行注释，说明其含义
++ 多行注释：使用多行字符串，即`'''`或`"""`
+  + 每个函数、类、模块的开头都包含一个三重引号的字符串，用于说明该函数、类、模块的功能，这是Python的官方规范，我们也遵循这个规范
+
+
+注释简洁明了，解释为什么而非怎么做，不写无意义的注释
+
+## 命名
++ 模块名：使用小写字母，单词之间用下划线分隔（下划线命名法），如`engine_controller.py`
++ 类名：使用大驼峰命名法，即每个单词首字母大写，如`RunningEngine`
++ 变量和函数名：使用小写字母，单词之间用下划线分隔（下划线命名法），如`get_dsl_tree`
++ 常量：使用大写字母，单词之间用下划线分隔（下划线命名法），如`MAX_LENGTH`
++ 文件夹名：使用小写字母，单词之间用下划线分隔（下划线命名法），如`testcases`
+
+所有命名均能清楚表达其含义，不使用拼音或缩写，例如，所有函数名均为动词+名词的形式，如`get_dsl_tree`，`parse_dsl`等
+
+同时，将一些具有类似功能的模块放在同一个文件夹下，如`controller`文件夹下的所有控制器，`parser`文件夹下的所有解析器
+
+## 缩进
++ 使用4个空格进行缩进，不使用制表符
+
+## 空行
++ 顶层定义（函数、类之间）使用两个空行分隔。
++ 类内部方法之间使用一个空行。
+
+## 导入语句
++ 导入语句分为三块，每块之间用一个空行分隔
+  + Python标准库导入
+  + 第三方库导入
+  + 本地库导入
+
+## 空格
++ 二元运算符两侧各加一个空格，如`a = b + c`
++ 逗号后加一个空格，如`print(a, b)`
++ 冒号后加一个空格，如`if a:`
+
+## 其他
+对于大部分函数，对参数和返回值均进行了`类型注解`，以方便阅读和调试
+
+
+# 设计和实现
+
+## 数据结构
+
+### DSL语法树
+
+DSL语法树是最重要的数据结构，它是DSL的抽象语法树，包含了所有的DSL语句模型，程序会首先解析DSL文件，生成DSL语法树，然后执行引擎会根据DSL语法树执行DSL文件
+
+DSL语法树的模型定义位于`model/dsl_tree.py`，该模型使用`pydantic`库定义，包含如下语句模型
+
++ `PARAM`类: 参数语句模型
+  + `param`: 参数名
+  + `value`: 参数值
++ `OUT`类: 输出语句模型
+  + `out`: 输出的字符串
+  + `get_out()`: 获取输出的字符串
++ `ASK`类: 询问语句模型
+  + `ask`: 询问的字符串
+  + `save_to`: 保存到的变量名
+  + `get_ask()`: 获取询问的字符串
+  + `get_save_to()`: 获取保存到的变量名
++ `TRANS`类: 转移语句模型
+  + `trans`: 转移到的状态名
+  + `get_trans()`: 获取转移到的状态名
++ `JUDGE`类: 判断语句模型
+  + `if_`: IF语句
+  + `elif_`: ELIF语句
+  + `else_`: ELSE语句
+  + `get_if()`: 获取IF语句
+  + `get_elif()`: 获取ELIF语句
+  + `get_else()`: 获取ELSE语句
+  + `has_else()`: 判断是否有ELSE语句
+  + `elif_iter()`: ELIF语句迭代器
++ `CONDITION`类: 条件模型
+  + `key`: 条件左边的变量名
+  + `judge`: 条件判断符，如`==`, `>`, `<=`等
+  + `value`: 条件右边的值
++ `IF_`类: IF语句模型
++ `ELIF_`类: ELIF语句模型
+  + `condition`: 条件模型
+  + `exprs`: 表达式集合
+  + `get_condition()`: 获取条件模型
+  + `expr_iter()`: 表达式集合迭代器
++ `ELSE_`类: ELSE语句模型
+  + `exprs`: 表达式集合
+  + `expr_iter()`: 表达式集合迭代器
++ `STATE`类: 状态模型
+  + `state`: 状态名
+  + `exprs`: 表达式集合
+  + `get_state_name()`: 获取状态名
+  + `expr_iter()`: 表达式集合迭代器
+
+需要说明的是，由于`JUDGE`类需要引用`IF_`, `ELIF_`, `ELSE_`类，而`IF_`, `ELIF_`, `ELSE_`类中的`exprs`又需要引用`JUDGE`类，这是循环引用，在文法定义中，我们使用`pyparsing`的前向引用来解决这个问题，在此处，我们使用`pydantic`的前向引用来解决这个问题
+
+根据文法定义，该DSL由若干`PARAM`和`STATE`组成，所以DSL语法树类`DSLTree`定义如下：
+```python
+class DSLTree(ConfigedBaseModel):
+    DSLTree: List[Union[PARAM, STATE]]
+```
+有如下方法：
++ `has_param(self)`: 判断是否有参数
++ `has_state(self)`: 判断是否有状态
++ `param_iter(self)`: 参数迭代器
++ `state_iter(self)`: 状态迭代器
++ `get_state(self, state_name: str)`: 获取指定状态
++ `check_state(self)`: 模型验证方法，用于检查DSL语法树的合法性
+
+当模型创建后，`pydatnic`会自动调用`check_state`方法，检查DSL语法树的合法性，如果没有状态被定义，会抛出`NoStateDefinedError`，如果没有初始状态，会抛出`NoInitialStateError`
+
+在`get_state`方法中，会根据状态名获取指定状态，如果状态不存在，会抛出`NoStateMatchedError`
+
+此外，还有一个静态方法`serialize`，用于将字典转换为DSL语法树模型，`parsing`模块会先将DSL解析为字典，然后再转换为DSL语法树模型
+
+下面给出一个DSL语法树的示例：
+
+DSL如下：
+```czz
+PARAM robot = "测试机器人"
+
+STATE INITIAL:
+    OUT "你好，我是{robot}"
+    ASK "你今年几岁了" -> age
+    IF age < "18":
+        OUT "你还是个小孩子"
+    ELIF age < "40":
+        OUT "你已经是个青年人了"
+    ELSE:
+        OUT "你已经是个老人了"
+    ;
+```
+
+
+语法树如下：
+```python
+DSLTree=[PARAM(param='robot', value='测试机器人'), STATE(state='INITIAL', exprs=[OUT(out='你好，我是{robot}'), ASK(ask='你今年几岁了', save_to='age'), JUDGE(if_=IF_(condition=CONDITION(key='age', judge='<', value='18'), exprs=[OUT(out='你还是个小孩子')]), elif_=[ELIF_(condition=CONDITION(key='age', judge='<', value='40'), exprs=[OUT(out='你已经是个青年人了')])], else_=ELSE_(exprs=[OUT(out='你已经是个老人了')]))])]
+```
+
+## 模块划分
+
+本项目共有`api`、`controller`、`engine`、`error`、`model`、`parser`、`testcases`、`dist`八个模块
+
+采用分层架构，分为**表示层、控制层、业务逻辑层、数据模型层、测试层**
+
++ 数据模型层：`error`、`model`
++ 业务逻辑层：`engine`、`parser`
++ 控制层：`controller`
++ 表示层：`api`、`dist`
++ 测试层：`testcases`
+
+分层图如下
+
+![分层图](README.assets/分层图.png)
+
+### 数据模型层
+
+负责数据的存储和处理，包含了所有的数据模型，如DSL语法树模型、错误模型等，以及数据的验证和处理方法
+
+`model`模块存储了所有的数据模型，`error`模块存储了所有的错误模型，具体如下
++ `model/dsl_tree.py`：DSL语法树模型
++ `error/dsl_runtime_error.py`：DSL运行时错误模型
++ `error/parse_error.py`：DSL解析错误模型
++ `error/controller_runtime_error.py`：控制器运行时错误模型
++ `error/parse_error.py`：解析器运行时错误模型
+
+模型已经在数据结构中介绍，这里不再赘述
+
+### 业务逻辑层
+
+实现了DSL的解析和执行，包含了所有的解析器和执行引擎
+
+`engine`模块为DSL的执行引擎，`parser`模块为DSL的解析器，具体如下
++ `engine/running_engine.py`：主执行引擎，用于执行DSL
++ `engine/string_operation.py`：字符串操作引擎，用于执行字符串操作
++ `engine/variable_manager.py`：变量管理引擎，用于管理变量
++ `engine/message_handler.py`：消息处理引擎，用于处理和缓存客户端和服务端的消息
++ `parser/parse_ask.py`：ASK语句解析器
++ `parser/parse_basic_unit.py`：基本单元解析器
++ `parser/parse_exprs.py`：表达式解析器
++ `parser/parse_out.py`：OUT语句解析器
++ `parser/parse_param.py`：PARAM语句解析器
++ `parser/parse_state.py`：STATE语句解析
++ `parser/parse_judge.py`：判断语句解析器
++ `parser/parse_trans.py`：转移语句解析器
++ `parser/parsing.py`：解析器入口
+
+### 控制层
+用于协调API请求，将请求转发给业务逻辑层，然后将结果返回给表示层
+
+`controller`模块包含了所有的控制器，具体如下
++ `controller/conf_controller.py`：配置控制器，用于读取配置文件
++ `controller/engine_controller.py`：引擎控制器，用于调用执行引擎执行机器人
++ `controller/session_controller.py`：会话控制器，用于处理会话，以支持多用户同时使用
+
+### 表示层
+提供视图，将数据呈现给用户，同时还包含前后端交互的接口
+`dist`为使用`React`框架编写的前端页面打包后的文件
++ `dist/index.html`：前端页面
++ `dist/assets`：前端静态资源（js、css）
+
+`api`中使用`fastapi`框架实现了一个`api_router`，供`run.py`调用
++ `api/api.py`：API接口
+
+
+### 测试层
+包含了所有的测试用例，使用`pytest`框架进行测试，`test.py`为自动测试脚本。
++ `testcases/enginecases`：包含了所有的引擎测试用例
++ `testcases/parsercases`：包含了所有的解析器测试用例
++ `testcases/modelcases`：包含了所有的数据模型测试用例
