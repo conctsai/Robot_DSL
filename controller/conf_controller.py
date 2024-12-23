@@ -10,6 +10,11 @@ class ConfController:
     配置文件控制器，用于管理配置文件
     '''
     def __init__(self, conf_dir='conf', end='czz'):
+        '''
+        初始化配置文件控制器
+        :param conf_dir: 配置文件目录，默认为conf
+        :param end: 配置文件后缀名，默认为czz
+        '''
         # 扫描conf目录下的所有配置文件
         self.end = end
         self.conf_map: Mapping[str, Union[None, DSLTree]] = {}

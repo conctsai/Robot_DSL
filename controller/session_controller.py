@@ -13,7 +13,7 @@ class SessionController:
         self.session_count = 1
         self.conf_controller = ConfController()
         
-    def create_session(self, conf_name: str):
+    def create_session(self, conf_name: str) -> int:
         '''
         创建会话
         :param conf_name: 配置文件名

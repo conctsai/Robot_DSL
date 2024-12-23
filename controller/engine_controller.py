@@ -9,6 +9,10 @@ class EngineController():
     引擎控制器，用于控制引擎的运行
     '''
     def __init__(self, tree: DSLTree):
+        '''
+        初始化引擎控制器
+        :param tree: DSL树
+        '''
         self.mh = MessageHandler()
         self.tree = tree
     
